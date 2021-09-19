@@ -4,6 +4,7 @@ import "C"
 import (
 	"fmt"
 	"syscall"
+	"unsafe"
 )
 
 func Loader(dllName string) (*syscall.DLL, error) {
@@ -24,11 +25,12 @@ func FindProc(dll *syscall.DLL, funcName string) (*syscall.Proc, error) {
 	return miniDump, err
 }
 
-func CallMiniDump(proc *syscall.Proc, processId uint32) error {
-	retCode, _, err := proc.Call(uintptr(processId))
-	if err != nil {
+func CallMiniDump(proc *syscall.Proc, processId uint32, path string) error {
+	retCode, _, err := proc.Call(uintptr(processId), uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))))
+	if retCode != 3 {
 		fmt.Println("return code: ", retCode)
 		fmt.Println("syscall error: ", syscall.GetLastError())
+		fmt.Println(err)
 		return err
 	}
 	return nil
