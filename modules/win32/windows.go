@@ -8,39 +8,45 @@ import (
 	"fmt"
 )
 
-func CreateDump(config *env.Config) error {
+func CreateDump(config *env.Config) ([]string, error) {
 	sys, err := dll.Loader(config.DllPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	proc, err := dll.FindProc(sys, config.FuncName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	processes, err := process.Processes()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ids := process.FindProcessByName(processes, config.NameProcess)
 
 	if ids == nil {
 		err = errors.New("There is no such process")
-		return err
+		return nil, err
 	}
 
+	var files []string
+	var fileName string
 	for _, p := range ids {
-		err = dll.CallMiniDump(proc, p.ProcessID, config.FilesDir+fmt.Sprint(p.ProcessID)+".dmp")
+		fileName = config.FilesDir + fmt.Sprint(p.ProcessID) + ".dmp"
+		err = dll.CallMiniDump(proc, p.ProcessID, fileName)
+		files = append(files, fileName)
 		if err != nil {
-			return err
+			return files, err
 		}
 	}
-	err = dll.CallMiniDump(proc, ids[0].ParentProcessID, config.FilesDir+fmt.Sprint(ids[0].ParentProcessID)+"_ParentProc"+".dmp")
+	fileName = config.FilesDir + fmt.Sprint(ids[0].ParentProcessID) + "_ParentProc" + ".dmp"
+	err = dll.CallMiniDump(proc, ids[0].ParentProcessID, fileName)
+	files = append(files, fileName)
 	if err != nil {
-		return err
+		return files, err
 	}
 
-	return nil
+	return files, nil
 }

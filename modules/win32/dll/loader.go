@@ -27,7 +27,7 @@ func FindProc(dll *syscall.DLL, funcName string) (*syscall.Proc, error) {
 
 func CallMiniDump(proc *syscall.Proc, processId uint32, path string) error {
 	retCode, _, err := proc.Call(uintptr(processId), uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))))
-	if retCode != 3 {
+	if retCode != 1 {
 		fmt.Println("return code: ", retCode)
 		fmt.Println("syscall error: ", syscall.GetLastError())
 		fmt.Println(err)

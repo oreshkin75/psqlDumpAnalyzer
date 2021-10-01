@@ -34,3 +34,14 @@ func FileRead(path string) ([]byte, int, error) {
 	//fmt.Printf("%s\n", encodedStr)
 	//fmt.Println(data)*/
 }
+
+func BytesRead(bytes uint, file *os.File) ([]byte, int, error) {
+	data := make([]byte, bytes)
+	n, err := file.Read(data)
+	if err == io.EOF {
+		return nil, n, nil
+	} else if err != nil {
+		return nil, n, err
+	}
+	return data, n, nil
+}
