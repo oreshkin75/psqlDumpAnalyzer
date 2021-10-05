@@ -1,4 +1,4 @@
-package process
+package windows
 
 import (
 	"golang.org/x/sys/windows"
@@ -7,16 +7,16 @@ import (
 	"unsafe"
 )
 
-const TH32CS_SNAPPROCESS = 0x00000002
+const Th32csSnapprocess = 0x00000002
 
-type WindowsProcess struct {
+type Process struct {
 	ProcessID       uint32
 	ParentProcessID uint32
 	Exe             string
 }
 
-func Processes() ([]WindowsProcess, error) {
-	handle, err := windows.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+func Processes() ([]Process, error) {
+	handle, err := windows.CreateToolhelp32Snapshot(Th32csSnapprocess, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func Processes() ([]WindowsProcess, error) {
 		return nil, err
 	}
 
-	results := make([]WindowsProcess, 0, 50)
+	results := make([]Process, 0, 50)
 	for {
 		results = append(results, newWindowsProcess(&entry))
 
@@ -45,8 +45,8 @@ func Processes() ([]WindowsProcess, error) {
 	}
 }
 
-func FindProcessByName(processes []WindowsProcess, name string) []WindowsProcess {
-	var findProcesses []WindowsProcess
+func FindProcessByName(processes []Process, name string) []Process {
+	var findProcesses []Process
 	for _, p := range processes {
 		if strings.ToLower(p.Exe) == strings.ToLower(name) {
 			findProcesses = append(findProcesses, p)
@@ -55,7 +55,7 @@ func FindProcessByName(processes []WindowsProcess, name string) []WindowsProcess
 	return findProcesses
 }
 
-func newWindowsProcess(e *windows.ProcessEntry32) WindowsProcess {
+func newWindowsProcess(e *windows.ProcessEntry32) Process {
 	// Find when the string ends for decoding
 	end := 0
 	for {
@@ -65,7 +65,7 @@ func newWindowsProcess(e *windows.ProcessEntry32) WindowsProcess {
 		end++
 	}
 
-	return WindowsProcess{
+	return Process{
 		ProcessID:       e.ProcessID,
 		ParentProcessID: e.ParentProcessID,
 		Exe:             syscall.UTF16ToString(e.ExeFile[:end]),

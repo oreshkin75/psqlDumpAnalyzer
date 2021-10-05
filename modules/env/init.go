@@ -11,9 +11,11 @@ type Config struct {
 	FilesDir    string
 	NameProcess string
 	FuncName    string
+	LogInfo     string
+	LogError    string
 }
 
-func getEnv(key string, defaultVal string) string {
+func (c *Creator) getEnv(key string, defaultVal string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}
@@ -21,20 +23,22 @@ func getEnv(key string, defaultVal string) string {
 	return defaultVal
 }
 
-func getEnvFile(path string) error {
-	if err := godotenv.Load(path); err != nil {
+func (c *Creator) getEnvFile() error {
+	if err := godotenv.Load(c.path); err != nil {
 		err = errors.New("unable to read config file")
 		return err
 	}
 	return nil
 }
 
-func New(path string) (*Config, error) {
-	err := getEnvFile(path)
+func (c *Creator) SetConfig() (*Config, error) {
+	err := c.getEnvFile()
 	return &Config{
-		DllPath:     getEnv("DLL_PATH", ""),
-		FilesDir:    getEnv("DUMP_DIRECTORY", ""),
-		NameProcess: getEnv("PROCESS_NAME", ""),
-		FuncName:    getEnv("FUNCTION_NAME", ""),
+		DllPath:     c.getEnv("DLL_PATH", ""),
+		FilesDir:    c.getEnv("DUMP_DIRECTORY", ""),
+		NameProcess: c.getEnv("PROCESS_NAME", ""),
+		FuncName:    c.getEnv("FUNCTION_NAME", ""),
+		LogInfo:     c.getEnv("LOG_INFO", "stdout"),
+		LogError:    c.getEnv("LOG_ERROR", "stderr"),
 	}, err
 }

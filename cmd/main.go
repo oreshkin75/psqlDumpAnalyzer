@@ -1,57 +1,59 @@
 package main
 
 import (
-	"PostgreDumpAnalyzer/modules/env"
-	"PostgreDumpAnalyzer/modules/win32"
-	"fmt"
-	"io/ioutil"
+	"PostgreDumpAnalyzer/modules"
+	"errors"
 	"os"
-	"strings"
-	"unicode"
 )
 
 func main() {
-
-	/*http.Handle("/", http.FileServer(http.Dir("frontend/build/web")))
-	http.ListenAndServe(":8080", nil)*/
-
-	config, err := env.New("C:\\Users\\vkont\\GolandProjects\\PostgreDumpAnalyzer\\cmd\\.env")
+	envPath, err := cmdArgs()
 	if err != nil {
 		panic(err)
 	}
-
-	files, err := win32.CreateDump(config)
+	mods, err := modules.New(envPath)
 	if err != nil {
 		panic(err)
 	}
+	defer mods.Loggers.LogFileError.Close()
+	defer mods.Loggers.LogFileInfo.Close()
 
-	fmt.Println(files)
-
-	/*file, err := os.Open(files[0])
-	defer file.Close()
+	_, err = mods.DumpCreator.CreateDump()
 	if err != nil {
-		panic(err)
+		mods.Loggers.LogError.Print(err)
 	}
-	for {
-		data, _, err := reader.BytesRead(128, file)
-		if err != nil {
-			panic(err)
-		}
-		if data == nil {
-			break
-		}
-		//fmt.Println(hex.EncodeToString(data))
-	}*/
-	data, err := ioutil.ReadFile(files[0])
+
+	mods.Loggers.LogInfo.Print("--- the program ended successfully ")
+	/*data, err := ioutil.ReadFile(files[0])
 	if err != nil {
+		logger.LogError.Fatal(err)
 		panic(err)
 	}
 	file, err := os.Create("dump.txt")
 	if err != nil {
+		logger.LogError.Fatal(err)
 		panic(err)
 	}
-
-	var clearData []byte
+	var cleanData []byte
+	for _, ch := range data {
+		if ch == 0 {
+			continue
+		}
+		cleanData = append(cleanData, ch)
+	}
+	dataStr := string(cleanData)
+	r := []rune(dataStr)
+	var cleanUni []rune
+	for _, ch := range r {
+		if unicode.IsGraphic(ch) {
+			if ch == 0xFFFD {
+				ch = 0x000A
+			}
+			cleanUni = append(cleanUni, ch)
+		}
+	}
+	file.WriteString(string(cleanUni))
+	/*var clearData []byte
 	for _, ch := range data {
 		if ch == 0 {
 			continue
@@ -67,6 +69,16 @@ func main() {
 		return -1
 	}, myString)
 	fmt.Printf("%q\n", clean)
-	file.WriteString(clean)
+	file.WriteString(clean)*/
 
+}
+
+func cmdArgs() (string, error) {
+	args := os.Args
+	if len(args) < 2 {
+		err := errors.New("the first command line argument must be the path to the environment variable file")
+		return "", err
+	}
+
+	return args[1], nil
 }
