@@ -1,4 +1,4 @@
-package env
+package configs
 
 import (
 	"errors"
@@ -15,6 +15,7 @@ type Config struct {
 	LogError    string
 }
 
+// getEnv Получение переменной окружения
 func (c *Creator) getEnv(key string, defaultVal string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
@@ -23,6 +24,7 @@ func (c *Creator) getEnv(key string, defaultVal string) string {
 	return defaultVal
 }
 
+// getEnvFile Чтение файла переменных окружения
 func (c *Creator) getEnvFile() error {
 	if err := godotenv.Load(c.path); err != nil {
 		err = errors.New("unable to read config file")
@@ -31,7 +33,8 @@ func (c *Creator) getEnvFile() error {
 	return nil
 }
 
-func (c *Creator) SetConfig() (*Config, error) {
+// GetConfig Получение конфигурации
+func (c *Creator) GetConfig() (*Config, error) {
 	err := c.getEnvFile()
 	return &Config{
 		DllPath:     c.getEnv("DLL_PATH", ""),
