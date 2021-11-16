@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package platform
@@ -39,12 +40,6 @@ func (d *Creator) CreateDump() ([]string, []windows2.Process, error) {
 		if err != nil {
 			return files, ids, err
 		}
-	}
-	fileName = d.config.FilesDir + fmt.Sprint(ids[0].ParentProcessID) + "_ParentProc" + ".dmp"
-	err = windows2.CallMiniDump(proc, ids[0].ParentProcessID, fileName)
-	files = append(files, fileName)
-	if err != nil {
-		return files, ids, err
 	}
 
 	return files, ids, nil
