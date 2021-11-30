@@ -4,43 +4,76 @@
 package platform
 
 import (
-	windows2 "PostgreDumpAnalyzer/internal/platform/windows"
+	"PostgreDumpAnalyzer/internal/platform/windows"
 	"errors"
 	"fmt"
 )
 
-func (d *Creator) CreateDump() ([]string, []windows2.Process, error) {
-	sys, err := windows2.Loader(d.config.DllPath)
-	if err != nil {
-		return nil, nil, err
-	}
+func (d *Creator) CreateDump() ([]string, []windows.Process, error) {
+	var err error
 
-	proc, err := windows2.FindProc(sys, d.config.FuncName)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	processes, err := windows2.Processes()
-	if err != nil {
-		return nil, nil, err
-	}
-	ids := windows2.FindProcessByName(processes, d.config.NameProcess)
-
-	if ids == nil {
-		err = errors.New("There is no such process")
+	if d.processes == nil {
+		err = errors.New("There is no such process ")
+		d.logError.Print(err, d.config.NameProcess)
 		return nil, nil, err
 	}
 
 	var files []string
 	var fileName string
-	for _, p := range ids {
+	for _, p := range d.processes {
 		fileName = d.config.FilesDir + fmt.Sprint(p.ProcessID) + ".dmp"
-		err = windows2.CallMiniDump(proc, p.ProcessID, fileName)
+		err = d.ProcessSearcher.CallMiniDump(p.ProcessID, fileName)
 		files = append(files, fileName)
 		if err != nil {
-			return files, ids, err
+			return files, d.processes, err
 		}
 	}
 
-	return files, ids, nil
+	var processes []windows.Process
+	processes = append(processes, d.processes...)
+	d.processes = nil
+	return files, processes, nil
+}
+
+func (d *Creator) FindAllPsqlProcesses() ([]windows.Process, error) {
+	var err error
+	d.processes, err = d.ProcessSearcher.FindProcessByName(d.config.NameProcess)
+	if err != nil {
+		return nil, err
+	}
+	if d.processes == nil {
+		err = errors.New("There are no such process ")
+		d.logError.Print(err, d.config.NameProcess)
+		return nil, err
+	}
+
+	return d.processes, nil
+}
+
+func (d *Creator) FindQueryProcess() ([]windows.Process, error) {
+	newProcesses, err := d.ProcessSearcher.FindProcessByName(d.config.NameProcess)
+	if err != nil {
+		return nil, err
+	}
+	if newProcesses == nil {
+		err = errors.New("There are no such process. Maybe your close psql server ")
+		d.logError.Print(err, d.config.NameProcess)
+		return nil, err
+	}
+	var resultProcesses []windows.Process
+	for i, np := range newProcesses {
+		for _, p := range d.processes {
+			if p.ProcessID == np.ProcessID {
+				newProcesses[i] = windows.Process{Exe: "delete"}
+			}
+		}
+	}
+	for _, p := range newProcesses {
+		if p.Exe != "delete" {
+			resultProcesses = append(resultProcesses, p)
+		}
+	}
+	d.processes = nil
+	d.processes = append(d.processes, resultProcesses...)
+	return d.processes, nil
 }

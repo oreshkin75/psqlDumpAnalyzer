@@ -7,30 +7,24 @@ import (
 	"unsafe"
 )
 
-func Loader(dllName string) (*syscall.DLL, error) {
-	dumpDll, err := syscall.LoadDLL(dllName)
+func (c *Creator) CallMiniDump(processId uint32, path string) error {
+	dumpDll, err := syscall.LoadDLL(c.config.DllPath)
 	if err != nil {
-		return nil, err
+		c.logError.Print(err)
+		return err
 	}
 
-	return dumpDll, nil
-}
-
-func FindProc(dll *syscall.DLL, funcName string) (*syscall.Proc, error) {
-	miniDump, err := dll.FindProc(funcName)
+	miniDump, err := dumpDll.FindProc(c.config.FuncName)
 	if err != nil {
-		return nil, err
+		c.logError.Print(err)
+		return err
 	}
 
-	return miniDump, err
-}
-
-func CallMiniDump(proc *syscall.Proc, processId uint32, path string) error {
-	retCode, _, err := proc.Call(uintptr(processId), uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))))
+	retCode, _, err := miniDump.Call(uintptr(processId), uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))))
 	if retCode != 1 {
 		fmt.Println("return code: ", retCode)
 		fmt.Println("syscall error: ", syscall.GetLastError())
-		fmt.Println(err)
+		c.logError.Print(err)
 		return err
 	}
 	return nil

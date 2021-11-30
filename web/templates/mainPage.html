@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Анализ дампов PSQL</title>
+</head>
+<body>
+<table border="1">
+    <p>Конфигурация</p>
+    <thead>
+    <th>Путь до DLL</th>
+    <th>Директория для дампов</th>
+    <th>Имя процесса</th>
+    <th>Функция создания дампа</th>
+    <th>Файл лога</th>
+    <th>Файл лога ошибок</th>
+    <th>Порт PostgreSQL</th>
+    <th>ip PostgreSQL</th>
+    <th>Пользователь PostgreSQL</th>
+    <th>Пароль PostgreSQL</th>
+    <th>База данных PostgreSQL</th>
+    <th>Путь до главной страницы</th>
+    <th>Путь до страницы конфигурации</th>
+    </thead>
+    <tr>
+        <td>{{.DllPath}}</td>
+        <td>{{.FilesDir}}</td>
+        <td>{{.NameProcess}}</td>
+        <td>{{.FuncName}}</td>
+        <td>{{.LogInfo}}</td>
+        <td>{{.LogError}}</td>
+        <td>{{.PsqlPort}}</td>
+        <td>{{.PsqlIp}}</td>
+        <td>{{.PsqlUser}}</td>
+        <td>{{.PsqlPassword}}</td>
+        <td>{{.PsqlDBName}}</td>
+        <td>{{.HtmlMainPage}}</td>
+        <td>{{.HtmlConfigurePage}}</td>
+    </tr>
+</table>
+<form method="POST">
+    <p><textarea name="query" placeholder="Введите SQL запрос. Можно оставить поле пустым" cols="40" rows="5"></textarea></p>
+    <input type="submit" value="Сделать дамп"/>
+</form>
+</body>
+</html>

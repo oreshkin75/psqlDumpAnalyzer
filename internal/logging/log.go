@@ -5,19 +5,6 @@ import (
 	"os"
 )
 
-/*func (c *LogCreator) checkConfig() error {
-	if c.config.LogInfo == c.config.LogError {
-		if c.config.LogInfo == "stdout" && c.config.LogError == "stdout" {
-			return nil
-		} else if c.config.LogInfo == "stderr" && c.config.LogError == "stderr" {
-			return nil
-		}
-		err := errors.New("error and information log files must be different ")
-		return err
-	}
-	return nil
-}*/
-
 func (c *Creator) CreateLoggerInfo() (*log.Logger, error) {
 	var err error
 	if c.config.LogInfo == "stdout" {

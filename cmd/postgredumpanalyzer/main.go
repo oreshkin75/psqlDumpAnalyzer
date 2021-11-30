@@ -4,6 +4,7 @@ import (
 	"PostgreDumpAnalyzer/internal/configs"
 	"PostgreDumpAnalyzer/internal/dumps"
 	"PostgreDumpAnalyzer/internal/logging"
+	"PostgreDumpAnalyzer/internal/ui"
 	"errors"
 	"fmt"
 	"io"
@@ -13,10 +14,15 @@ import (
 func main() {
 	envPath, err := cmdArgs()
 	if err != nil {
-		panic(err)
+		fmt.Println("Start without configure file. All parameters set to default")
 	}
+
 	env := configs.New(envPath)
 	config, err := env.GetConfig()
+	if err != nil {
+		fmt.Println("Can't read configure file")
+	}
+
 	logger := logging.New(config)
 	logInfo, err := logger.CreateLoggerInfo()
 	if err != nil {
@@ -27,6 +33,9 @@ func main() {
 		fmt.Println("can't open log file. Error logs will be write in stdout")
 	}
 
+	logInfo.Print("")
+	webServer := ui.New(logInfo, logError, config)
+	webServer.StartWebUI("localhost", "4444")
 	/*psql := psql.New(logInfo, logError, config)
 	_, err = psql.Connect()
 	if err != nil {

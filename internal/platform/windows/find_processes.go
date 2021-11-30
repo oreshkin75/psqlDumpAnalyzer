@@ -7,17 +7,10 @@ import (
 	"unsafe"
 )
 
-const Th32csSnapprocess = 0x00000002
-
-type Process struct {
-	ProcessID       uint32
-	ParentProcessID uint32
-	Exe             string
-}
-
-func Processes() ([]Process, error) {
+func (c *Creator) FindProcessByName(name string) ([]Process, error) {
 	handle, err := windows.CreateToolhelp32Snapshot(Th32csSnapprocess, 0)
 	if err != nil {
+		c.logError.Print(err)
 		return nil, err
 	}
 	defer windows.CloseHandle(handle)
@@ -27,6 +20,7 @@ func Processes() ([]Process, error) {
 	// get the first process
 	err = windows.Process32First(handle, &entry)
 	if err != nil {
+		c.logError.Print(err)
 		return nil, err
 	}
 
@@ -38,21 +32,20 @@ func Processes() ([]Process, error) {
 		if err != nil {
 			// windows sends ERROR_NO_MORE_FILES on last process
 			if err == syscall.ERROR_NO_MORE_FILES {
-				return results, nil
+				break
 			}
+			c.logError.Print(err)
 			return nil, err
 		}
 	}
-}
 
-func FindProcessByName(processes []Process, name string) []Process {
 	var findProcesses []Process
-	for _, p := range processes {
+	for _, p := range results {
 		if strings.ToLower(p.Exe) == strings.ToLower(name) {
 			findProcesses = append(findProcesses, p)
 		}
 	}
-	return findProcesses
+	return findProcesses, nil
 }
 
 func newWindowsProcess(e *windows.ProcessEntry32) Process {
