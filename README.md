@@ -1,4 +1,5 @@
 # psqlDumpAnalyzer
+Данная программа использует [DLL для создания файла дампа](https://github.com/oreshkin75/CreateRAMDumpDLL)
 Анализ дампов PostgreSQL
 Работает только в ОС Windows
 Программа позволяет сделать дамп текущего процесса psql и прочитать его содержимое
